@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_DB: lcm_microservice_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+    ports:
+      - "55433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app
+
+  eureka-server:
+    build: ./eureka_server
+    container_name: eureka_server
+    ports:
+      - "8761:8761"
+    depends_on:
+      - postgres
+    networks:
+      - app
+
+  api-gateway:
+    build: ./api_gateway
+    container_name: api_gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+    networks:
+      - app
+
+  traffic-sign-service:
+    build: ./traffic_sign_service
+    container_name: traffic_sign_service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres
+      - eureka-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/lcm_microservice_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+    networks:
+      - app
+
+  user-service:
+    build: ./user_service
+    container_name: user_service
+    ports:
+      - "8084:8084"
+    depends_on:
+      - postgres
+      - eureka-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/lcm_microservice_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+    networks:
+      - app
+
+  react-app:
+    build: ./react-app
+    container_name: react-app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+    networks:
+      - app
+
+volumes:
+  pgdata:
+
+networks:
+  app:

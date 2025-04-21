@@ -1,0 +1,77 @@
+.form-container {
+    max-width: 600px;
+    margin: 50px auto;
+    background: #ffffff;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.form-container h2 {
+    text-align: center;
+    margin-bottom: 24px;
+    color: #2c3e50;
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.traffic-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.traffic-form label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 500;
+    color: #333;
+}
+
+.traffic-form input[type="text"],
+.traffic-form textarea {
+    margin-top: 8px;
+    padding: 10px 12px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    transition: border 0.2s;
+}
+
+.traffic-form textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.traffic-form input[type="text"]:focus,
+.traffic-form textarea:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.image-preview {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-top: -10px;
+    margin-bottom: 12px;
+}
+
+.traffic-form button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+.traffic-form button:hover {
+    background-color: #0056b3;
+}

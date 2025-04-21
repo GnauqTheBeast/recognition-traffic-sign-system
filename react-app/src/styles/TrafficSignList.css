@@ -1,0 +1,90 @@
+.traffic-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.traffic-table th,
+.traffic-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.traffic-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.btn-action {
+  display: inline-block;
+  padding: 8px 12px;
+  min-width: 80px;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 14px;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.view-link {
+  background-color: #007bff;
+}
+
+.view-link:hover {
+  background-color: #0056b3;
+}
+
+.edit-link {
+  background-color: #28a745;
+}
+
+.edit-link:hover {
+  background-color: #218838;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  border: none;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
+}
+
+.image-thumbnail {
+  max-width: 50px;
+  height: auto;
+}
+
+.type-tag {
+  background-color: #e9ecef;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.add-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #17a2b8;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  min-width: 150px;
+  text-align: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.add-button:hover {
+  background-color: #138496;
+  transform: translateY(-2px);
+}
+
+.add-button:active {
+  transform: translateY(0);
+}
