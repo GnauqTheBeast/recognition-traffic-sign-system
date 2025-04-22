@@ -6,7 +6,7 @@ function UserList() {
     const [users, setUsers] = useState([]);
 
     useEffect(() => {
-        fetch('http://192.168.49.2:30084/api/users')
+        fetch('http://localhost:8080/api/users')
             .then(res => res.json())
             .then(data => setUsers(data))
             .catch(err => console.error('Error fetching users:', err));
@@ -14,7 +14,7 @@ function UserList() {
 
     const handleDelete = (id) => {
         if (window.confirm("Are you sure you want to delete this user?")) {
-            fetch(`http://192.168.49.2:30084/api/users/${id}`, {
+            fetch(`http://localhost:8080/api/users/${id}`, {
                 method: 'DELETE'
             }).then(() => {
                 setUsers(users.filter(user => user.id !== id));

@@ -8,7 +8,7 @@ function EditUser() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch(`http://192.168.49.2:30000/api/users/${id}`)
+        fetch(`http://localhost:8080/api/users/${id}`)
             .then(res => res.json())
             .then(data => setForm(data));
     }, [id]);
@@ -19,7 +19,7 @@ function EditUser() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        fetch(`http://192.168.49.2:30000/api/users/${id}`, {
+        fetch(`http://localhost:8080/api/users/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(form)

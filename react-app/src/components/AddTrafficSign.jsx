@@ -20,6 +20,10 @@ const AddTrafficSign = () => {
         navigate('/');
     };
 
+    const handleBack = () => {
+        navigate(-1);
+    };
+
     return (
         <div className="form-container">
             <h2>Add New Traffic Sign</h2>
@@ -48,6 +52,7 @@ const AddTrafficSign = () => {
                 {previewUrl && <img src={previewUrl} alt="Preview" className="image-preview" />}
                 <button type="submit">Submit</button>
             </form>
+            <button className="back-button" onClick={handleBack}>Back</button>
         </div>
     );
 };
