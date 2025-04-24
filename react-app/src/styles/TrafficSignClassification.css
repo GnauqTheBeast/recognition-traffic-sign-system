@@ -130,3 +130,66 @@ h1 {
     text-align: center;
     width: 100%;
 }
+
+.model-selection {
+    margin-bottom: 20px;
+    background-color: #f8fafc;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.model-selection label {
+    font-weight: 600;
+    color: #4b5563;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.model-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.model-button {
+    padding: 8px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: #f9fafb;
+    color: #4b5563;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.model-button:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.model-button.active {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #2563eb;
+}
+
+.model-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.model-info {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background-color: #f3f4f6;
+    border-radius: 6px;
+}
+
+.model-info p {
+    margin: 0;
+    color: #4b5563;
+}
+
+.model-info strong {
+    color: #1e40af;
+}

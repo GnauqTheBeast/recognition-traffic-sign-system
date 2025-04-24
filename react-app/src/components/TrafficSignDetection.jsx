@@ -9,9 +9,30 @@ const TrafficSignDetection = () => {
     const [displayBoundingBox, setDisplayBoundingBox] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [availableModels, setAvailableModels] = useState([]);
+    const [selectedModel, setSelectedModel] = useState('cnn');
     const fileInputRef = useRef(null);
     const imgRef = useRef(null);
     const imageContainerRef = useRef(null);
+
+    // Lấy danh sách model khi component mount
+    useEffect(() => {
+        fetchAvailableModels();
+    }, []);
+
+    const fetchAvailableModels = async () => {
+        try {
+            const response = await fetch('http://localhost:8000/models');
+            if (!response.ok) {
+                throw new Error("Không thể lấy danh sách model");
+            }
+            const data = await response.json();
+            setAvailableModels(data.available_models);
+            setSelectedModel(data.current_model);
+        } catch (err) {
+            console.error("Lỗi khi lấy danh sách model:", err);
+        }
+    };
 
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -55,21 +76,22 @@ const TrafficSignDetection = () => {
     }, [imageUrl]);
 
     const updateBoundingBoxDisplay = () => {
-        if (!imgRef.current || !originalBoundingBox || !imageContainerRef.current) return;
+        if (!imgRef.current || !originalBoundingBox) return;
 
         try {
-            const containerWidth = imageContainerRef.current.clientWidth;
-            const containerHeight = imageContainerRef.current.clientHeight;
+            // Lấy kích thước hiển thị thực tế của ảnh
+            const displayWidth = imgRef.current.clientWidth;
+            const displayHeight = imgRef.current.clientHeight;
 
+            // Lấy kích thước thực của ảnh gốc
             const naturalWidth = imgRef.current.naturalWidth;
             const naturalHeight = imgRef.current.naturalHeight;
 
-            console.log("Container dimensions:", { width: containerWidth, height: containerHeight });
-            console.log("Image dimensions:", { width: naturalWidth, height: naturalHeight });
+            // Tính toán tỷ lệ
+            const scaleX = displayWidth / naturalWidth;
+            const scaleY = displayHeight / naturalHeight;
 
-            const scaleX = containerWidth / naturalWidth;
-            const scaleY = containerHeight / naturalHeight;
-
+            // Áp dụng tỷ lệ vào bounding box
             const scaledBox = {
                 x1: originalBoundingBox.x1 * scaleX,
                 y1: originalBoundingBox.y1 * scaleY,
@@ -77,12 +99,37 @@ const TrafficSignDetection = () => {
                 y2: originalBoundingBox.y2 * scaleY
             };
 
-            console.log("Original box:", originalBoundingBox);
-            console.log("Scaled box:", scaledBox);
-
             setDisplayBoundingBox(scaledBox);
         } catch (err) {
             console.error("Error updating bounding box:", err);
+        }
+    };
+
+    const handleModelChange = async (model) => {
+        try {
+            setLoading(true);
+            const response = await fetch('http://localhost:8000/set-model', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(model)
+            });
+            
+            if (!response.ok) {
+                throw new Error("Không thể thay đổi model");
+            }
+            
+            const data = await response.json();
+            setSelectedModel(data.current_model);
+            
+            // Reset results when changing model
+            setOriginalBoundingBox(null);
+            setDisplayBoundingBox(null);
+        } catch (err) {
+            setError(`Lỗi khi thay đổi model: ${err.message}`);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -100,13 +147,12 @@ const TrafficSignDetection = () => {
             const formData = new FormData();
             formData.append('file', selectedImage);
 
-            console.log('Sending request to detect endpoint...');
-            const response = await fetch('http://localhost:8000/detect', {
+            console.log(`Sử dụng model: ${selectedModel}`);
+            const response = await fetch(`http://localhost:8000/detect?model_type=${selectedModel}`, {
                 method: 'POST',
                 body: formData,
             });
 
-            console.log('Response received:', response.status);
             if (!response.ok) {
                 let errorMessage;
                 try {
@@ -120,10 +166,10 @@ const TrafficSignDetection = () => {
 
             const data = await response.json();
             console.log('Bounding box received:', data.bounding_box);
-
+            
             // Lưu bounding box gốc
             setOriginalBoundingBox(data.bounding_box);
-
+            
         } catch (err) {
             console.error('Error during detection:', err);
             setError(`${err.message}`);
@@ -134,7 +180,7 @@ const TrafficSignDetection = () => {
 
     const handleImageLoad = () => {
         console.log("Image loaded successfully");
-
+        
         // Khi ảnh tải xong, cập nhật bounding box nếu có
         if (originalBoundingBox) {
             updateBoundingBoxDisplay();
@@ -155,24 +201,40 @@ const TrafficSignDetection = () => {
                     <Link to="/traffic-signs/classify" className="classify-link">Đến trang Phân loại</Link>
                 </div>
             </header>
-
+            
+            <div className="model-selection">
+                <label>Chọn model:</label>
+                <div className="model-buttons">
+                    {availableModels.map(model => (
+                        <button
+                            key={model}
+                            className={`model-button ${selectedModel === model ? 'active' : ''}`}
+                            onClick={() => handleModelChange(model)}
+                            disabled={loading}
+                        >
+                            {model.toUpperCase()}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            
             <div className="upload-section">
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    ref={fileInputRef}
-                    style={{ display: 'none' }}
+                <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleFileChange} 
+                    ref={fileInputRef} 
+                    style={{ display: 'none' }} 
                 />
-                <button
-                    className="upload-button"
+                <button 
+                    className="upload-button" 
                     onClick={handleImageUpload}
                 >
                     Chọn ảnh
                 </button>
                 {selectedImage && (
-                    <button
-                        className="detect-button"
+                    <button 
+                        className="detect-button" 
                         onClick={detectSign}
                         disabled={loading}
                     >
@@ -192,16 +254,16 @@ const TrafficSignDetection = () => {
                     <div className="image-preview" ref={imageContainerRef}>
                         <h3>Hình ảnh</h3>
                         <div className="image-container">
-                            <img
-                                src={imageUrl}
-                                alt="Uploaded"
-                                className="uploaded-image"
+                            <img 
+                                src={imageUrl} 
+                                alt="Uploaded" 
+                                className="uploaded-image" 
                                 ref={imgRef}
                                 onLoad={handleImageLoad}
                                 onError={handleImageError}
                             />
                             {displayBoundingBox && (
-                                <div
+                                <div 
                                     className="bounding-box"
                                     style={{
                                         left: `${displayBoundingBox.x1}px`,
@@ -214,7 +276,7 @@ const TrafficSignDetection = () => {
                         </div>
                     </div>
                 )}
-
+                
                 <div className="info-section">
                     {originalBoundingBox && (
                         <div className="detection-info">
@@ -233,6 +295,9 @@ const TrafficSignDetection = () => {
                                 <div className="coordinate">
                                     <span>Y2:</span> {Math.round(originalBoundingBox.y2)}
                                 </div>
+                            </div>
+                            <div className="model-info">
+                                <p>Model sử dụng: <strong>{selectedModel.toUpperCase()}</strong></p>
                             </div>
                             <div className="detection-tip">
                                 <p>Để phân loại biển báo này, hãy chuyển đến trang <Link to="/traffic-signs/classify" className="inline-link">Phân loại biển báo</Link> và tải lên ảnh chỉ chứa biển báo.</p>
