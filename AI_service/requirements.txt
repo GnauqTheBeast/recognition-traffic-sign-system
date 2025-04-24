@@ -1,0 +1,12 @@
+tensorflow
+opencv-python
+numpy
+pandas
+matplotlib
+scikit-learn
+pillow
+protobuf
+h5py
+fastapi 
+uvicorn 
+python-multipart

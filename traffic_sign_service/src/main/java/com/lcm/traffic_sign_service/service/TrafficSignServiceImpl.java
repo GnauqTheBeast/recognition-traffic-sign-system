@@ -44,7 +44,7 @@ public class TrafficSignServiceImpl implements TrafficSignService {
         
         existingTrafficSign.setName(updatedTrafficSign.getName());
         existingTrafficSign.setDescription(updatedTrafficSign.getDescription());
-        existingTrafficSign.setImageUrl(updatedTrafficSign.getImageUrl());
+        existingTrafficSign.setImagePath(updatedTrafficSign.getImagePath());
         existingTrafficSign.setType(updatedTrafficSign.getType());
         
         return trafficSignRepository.save(existingTrafficSign);

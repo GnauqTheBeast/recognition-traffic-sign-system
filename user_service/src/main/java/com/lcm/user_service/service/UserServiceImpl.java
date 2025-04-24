@@ -33,7 +33,7 @@ public class UserServiceImpl implements UserService {
     public User updateUser(Long id, User updatedUser) {
         User existingUser = getUserById(id);
 
-        existingUser.setName(updatedUser.getName());
+        existingUser.setFullName(updatedUser.getFullName());
         existingUser.setEmail(updatedUser.getEmail());
         existingUser.setAvatarUrl(updatedUser.getAvatarUrl());
 
@@ -46,5 +46,32 @@ public class UserServiceImpl implements UserService {
             throw new EntityNotFoundException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
+    }
+
+    @Override
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public User createUser(User user) {
+        User existingUser = getUserByEmail(user.getEmail());
+
+        if (existingUser != null) {
+            throw new IllegalArgumentException("User with this email already exists");
+        }
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User authenticateUser(String email, String password) {
+        User user = getUserByEmail(email);
+
+        if (user == null || !user.getPassword().equals(password)) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+
+        return user;
     }
 }

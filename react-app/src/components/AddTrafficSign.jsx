@@ -1,23 +1,75 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrafficSignService } from '../services/trafficSignService';
 import '../styles/AddTrafficSign.css';
 
 const AddTrafficSign = () => {
-    const [formData, setFormData] = useState({ name: '', description: '', type: '', imageUrl: '' });
+    const [formData, setFormData] = useState({
+        name: '',
+        description: '',
+        type: '',
+        imageFile: null,
+        xMin: '',
+        yMin: '',
+        xMax: '',
+        yMax: ''
+    });
+
     const [previewUrl, setPreviewUrl] = useState('');
+    const [errorMessage, setErrorMessage] = useState(null);
     const navigate = useNavigate();
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-        if (name === 'imageUrl') setPreviewUrl(value);
+        const { name, value, type } = e.target;
+
+        if (type === 'file') {
+            const file = e.target.files[0];
+            if (file) {
+                setFormData({ ...formData, imageFile: file });
+                setPreviewUrl(URL.createObjectURL(file));
+            }
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await TrafficSignService.createTrafficSign(formData);
-        navigate('/');
+
+        try {
+            const formDataToSend = new FormData();
+
+            const data = {
+                name: formData.name,
+                description: formData.description,
+                type: formData.type,
+                xMin: parseFloat(formData.xMin),
+                yMin: parseFloat(formData.yMin),
+                xMax: parseFloat(formData.xMax),
+                yMax: parseFloat(formData.yMax),
+            };
+
+            formDataToSend.append("data", new Blob([JSON.stringify(data)], { type: "application/json" }));
+            formDataToSend.append("image", formData.imageFile);
+
+            const response = await fetch("http://localhost:8080/api/traffic-signs", {
+                method: "POST",
+                body: formDataToSend
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.log(errorData);
+                throw new Error(errorData.message || "Failed to create traffic sign");
+            }
+
+            navigate("/traffic-signs");
+        } catch (error) {
+            if (error.message.includes("409")) {
+                setErrorMessage("The traffic sign already exists! Please choose a different one.");
+            } else {
+                setErrorMessage("Failed to create traffic sign. Please try again.");
+            }
+        }
     };
 
     const handleBack = () => {
@@ -27,6 +79,7 @@ const AddTrafficSign = () => {
     return (
         <div className="form-container">
             <h2>Add New Traffic Sign</h2>
+            {errorMessage && <div className="error-popup">{errorMessage}</div>}
             <form onSubmit={handleSubmit} className="traffic-form">
                 <label>
                     Name:
@@ -46,10 +99,32 @@ const AddTrafficSign = () => {
                     </select>
                 </label>
                 <label>
-                    Image URL:
-                    <input type="text" name="imageUrl" value={formData.imageUrl} onChange={handleChange} />
+                    Image:
+                    <input type="file" accept="image/*" name="imageFile" onChange={handleChange} required />
+                    {/* <input type="file" onChange={e => setSelectedFile(e.target.files[0])} /> */}
                 </label>
+
                 {previewUrl && <img src={previewUrl} alt="Preview" className="image-preview" />}
+
+                <div className="coordinates-group">
+                    <label>
+                        X Min:
+                        <input type="number" name="xMin" value={formData.xMin} onChange={handleChange} />
+                    </label>
+                    <label>
+                        Y Min:
+                        <input type="number" name="yMin" value={formData.yMin} onChange={handleChange} />
+                    </label>
+                    <label>
+                        X Max:
+                        <input type="number" name="xMax" value={formData.xMax} onChange={handleChange} />
+                    </label>
+                    <label>
+                        Y Max:
+                        <input type="number" name="yMax" value={formData.yMax} onChange={handleChange} />
+                    </label>
+                </div>
+
                 <button type="submit">Submit</button>
             </form>
             <button className="back-button" onClick={handleBack}>Back</button>

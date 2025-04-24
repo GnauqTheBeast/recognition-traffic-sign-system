@@ -75,6 +75,16 @@ services:
     networks:
       - app
 
+#  traffic-sign-recognition:
+#    build: ./AI_service
+#    ports:
+#      - "8000:8000"
+#    volumes:
+#      - ./models:/app/models
+#      - ./data:/app/data
+#    environment:
+#      - PYTHONUNBUFFERED=1
+#    restart: unless-stopped
 volumes:
   pgdata:
 

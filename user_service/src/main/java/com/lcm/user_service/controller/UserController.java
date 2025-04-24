@@ -1,5 +1,6 @@
 package com.lcm.user_service.controller;
 
+import com.lcm.user_service.entity.LoginRequest;
 import com.lcm.user_service.entity.User;
 import com.lcm.user_service.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -18,6 +20,27 @@ public class UserController {
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        try {
+            User user = userService.authenticateUser(loginRequest.getEmail(), loginRequest.getPassword());
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(Map.of("message", "Email hoặc mật khẩu không đúng"),
+                    HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> createUser(@RequestBody User user) {
+        try {
+            User newUser = userService.createUser(user);
+            return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(Map.of("message", e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping

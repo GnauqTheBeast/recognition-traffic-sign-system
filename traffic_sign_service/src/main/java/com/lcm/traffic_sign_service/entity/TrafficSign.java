@@ -1,6 +1,7 @@
 package com.lcm.traffic_sign_service.entity;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -26,19 +27,35 @@ public class TrafficSign {
     @Column(nullable = false)
     private String description;
 
-    @Column(name = "image_url")
-    private String imageUrl;
+    @Column(name = "imagePath")
+    private String imagePath;
+
+    @Column()
+    @JsonProperty("xMin")
+    private double xMin;
+
+    @Column()
+    @JsonProperty("yMin")
+    private double yMin;
+
+    @Column()
+    @JsonProperty("xMax")
+    private double xMax;
+
+    @Column()
+    @JsonProperty("yMax")
+    private double yMax;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TrafficSignType type;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "createdAt", updatable = false)
     private Date createdAt;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "updated_at")
+    @Column(name = "updatedAt")
     private Date updatedAt;
 
     public enum TrafficSignType {

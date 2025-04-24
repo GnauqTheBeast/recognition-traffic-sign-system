@@ -1,0 +1,132 @@
+/* TrafficSignClassification.css */
+.classification-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h1 {
+    color: #1e3a8a;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.upload-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.image-uploader {
+    display: flex;
+    align-items: center;
+}
+
+.upload-button, .classify-button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.upload-button {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.upload-button:hover {
+    background-color: #2563eb;
+}
+
+.classify-button {
+    background-color: #8b5cf6;
+    color: white;
+}
+
+.classify-button:hover {
+    background-color: #7c3aed;
+}
+
+.classify-button:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.result-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.image-preview, .classification-result {
+    flex: 1;
+    min-width: 300px;
+}
+
+.image-preview h3, .classification-result h3 {
+    color: #1e3a8a;
+    margin-bottom: 10px;
+}
+
+.uploaded-image {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.result-card {
+    background-color: #f9fafb;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.result-item {
+    margin-bottom: 12px;
+}
+
+.result-label {
+    font-weight: 600;
+    color: #4b5563;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.result-value {
+    font-size: 1.1rem;
+    color: #111827;
+}
+
+.confidence {
+    color: #047857;
+    font-weight: 600;
+}
+
+.confidence-bar {
+    margin-top: 6px;
+    background-color: #e5e7eb;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.confidence-fill {
+    background-color: #10b981;
+    height: 100%;
+    border-radius: 4px;
+}
+
+.error-message {
+    color: #ef4444;
+    background-color: #fee2e2;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    text-align: center;
+    width: 100%;
+}

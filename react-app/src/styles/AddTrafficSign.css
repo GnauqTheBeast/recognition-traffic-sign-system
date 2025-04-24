@@ -75,3 +75,39 @@
 .traffic-form button:hover {
     background-color: #0056b3;
 }
+
+.back-button {
+    margin-top: 20px;
+    padding: 10px 15px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.back-button:hover {
+    background-color: #d32f2f;
+}
+
+.error-popup {
+    color: white;
+    background-color: #f44336;
+    padding: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+    border-radius: 5px;
+}
+
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}

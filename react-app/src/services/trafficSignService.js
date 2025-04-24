@@ -1,12 +1,12 @@
 const API_BASE_URL = 'http://localhost:8080/api/traffic-signs';
-// const API_BASE_URL = 'http://192.168.49.2:30083/api/traffic-signs';
 
 const ALLOWED_TYPES = ['WARNING', 'PROHIBITION', 'INFORMATION'];
 
 const normalizeTrafficSignType = (type) => type.trim().toUpperCase();
 
 const validateTrafficSign = (trafficSign) => {
-    const { name, description, imageUrl, type } = trafficSign;
+    const { name, description, imageUrl, type, xMin, yMin, xMax, yMax } = trafficSign;
+
     if (!name || !description || !imageUrl || !type) {
         throw new Error('All fields are required');
     }
@@ -16,7 +16,34 @@ const validateTrafficSign = (trafficSign) => {
         throw new Error(`Invalid traffic sign type. Allowed types: ${ALLOWED_TYPES.join(', ')}`);
     }
 
-    return { ...trafficSign, type: normalizedType };
+    const parsedXMin = parseFloat(xMin);
+    const parsedYMin = parseFloat(yMin);
+    const parsedXMax = parseFloat(xMax);
+    const parsedYMax = parseFloat(yMax);
+
+    if (
+        isNaN(parsedXMin) || isNaN(parsedXMax) ||
+        isNaN(parsedYMin) || isNaN(parsedYMax)
+    ) {
+        throw new Error('Coordinates (xMin, yMin, xMax, yMax) must be valid numbers');
+    }
+
+    if (parsedXMin > parsedXMax) {
+        throw new Error('xMin must be less than or equal to xMax');
+    }
+
+    if (parsedYMin > parsedYMax) {
+        throw new Error('yMin must be less than or equal to yMax');
+    }
+
+    return {
+        ...trafficSign,
+        type: normalizedType,
+        xMin: parsedXMin,
+        yMin: parsedYMin,
+        xMax: parsedXMax,
+        yMax: parsedYMax,
+    };
 };
 
 export const TrafficSignService = {
@@ -77,6 +104,9 @@ export const TrafficSignService = {
                 if (!res.ok) {
                     return res.json().then(errorData => {
                         console.error('Error response:', errorData);
+                        if (res.status === 409) {
+                            throw new Error('Name already exists');
+                        }
                         throw new Error(errorData.message || 'Failed to update traffic sign');
                     });
                 }

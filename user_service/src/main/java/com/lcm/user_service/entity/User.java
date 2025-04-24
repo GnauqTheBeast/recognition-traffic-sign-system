@@ -16,11 +16,15 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "full_name_id", referencedColumnName = "id", nullable = false)
+    private FullName fullName;
 
     @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false)
+    private String password;
 
     @Column
     private String avatarUrl;
