@@ -94,8 +94,8 @@ public class TrafficSignController {
 
         for (TrafficSign sign : trafficSigns) {
             // Giả sử bạn lưu trữ ảnh trong thư mục /uploads và có URL base là http://localhost:8080/
-            String imageUrl = "http://localhost:8080/uploads/" + sign.getImagePath();
-            sign.setImagePath(imageUrl); // Set trường imageUrl với URL đầy đủ
+            String imageUrl = "http://localhost:8083" + sign.getImagePath();
+            sign.setImagePath(imageUrl);
         }
 
         return new ResponseEntity<>(trafficSigns, HttpStatus.OK);

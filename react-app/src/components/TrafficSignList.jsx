@@ -54,10 +54,10 @@ const TrafficSignList = () => {
           <tbody>
             {trafficSigns.map((sign) => (
               <tr key={sign.id}>
-                <td>
-                  {sign.imageUrl ? (
+               <td>
+                  {sign.imagePath ? (
                     <img
-                      src={sign.imageUrl}
+                      src={sign.imagePath}
                       alt={sign.name}
                       className="image-thumbnail"
                     />
