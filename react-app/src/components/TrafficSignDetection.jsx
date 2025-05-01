@@ -14,15 +14,14 @@ const TrafficSignDetection = () => {
     const fileInputRef = useRef(null);
     const imgRef = useRef(null);
     const imageContainerRef = useRef(null);
-
-    // Lấy danh sách model khi component mount
+    
     useEffect(() => {
         fetchAvailableModels();
     }, []);
 
     const fetchAvailableModels = async () => {
         try {
-            const response = await fetch('http://localhost:8000/models');
+            const response = await fetch('http://localhost:8000/api/models');
             if (!response.ok) {
                 throw new Error("Không thể lấy danh sách model");
             }
@@ -45,14 +44,12 @@ const TrafficSignDetection = () => {
         }
     };
 
-    // Theo dõi thay đổi kích thước ảnh để cập nhật bounding box
     useEffect(() => {
         if (imgRef.current && originalBoundingBox) {
             updateBoundingBoxDisplay();
         }
     }, [originalBoundingBox]);
 
-    // Thêm listener để cập nhật bounding box khi cửa sổ thay đổi kích thước
     useEffect(() => {
         const handleResize = () => {
             if (originalBoundingBox) {
@@ -105,33 +102,41 @@ const TrafficSignDetection = () => {
         }
     };
 
-    const handleModelChange = async (model) => {
+    const handleModelChange = async (modelType) => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:8000/set-model', {
+            
+            const modelData = {
+                model_type: modelType  
+            };
+            
+            console.log("Sending model data:", JSON.stringify(modelData)); // Log để debug
+            
+            const response = await fetch('http://localhost:8000/api/set-model', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(model)
+                body: JSON.stringify(modelData)
             });
             
             if (!response.ok) {
-                throw new Error("Không thể thay đổi model");
+                const errorData = await response.json();
+                console.error("API Error:", errorData);
+                throw new Error(`Không thể thay đổi model: ${JSON.stringify(errorData)}`);
             }
             
             const data = await response.json();
+            console.log("Success response:", data); 
             setSelectedModel(data.current_model);
             
-            // Reset results when changing model
-            setOriginalBoundingBox(null);
-            setDisplayBoundingBox(null);
         } catch (err) {
+            console.error("Error details:", err);
             setError(`Lỗi khi thay đổi model: ${err.message}`);
         } finally {
             setLoading(false);
         }
-    };
+    };    
 
     const handleImageUpload = () => {
         fileInputRef.current.click();
@@ -139,20 +144,20 @@ const TrafficSignDetection = () => {
 
     const detectSign = async () => {
         if (!selectedImage) return;
-
+    
         setLoading(true);
         setError(null);
-
+    
         try {
             const formData = new FormData();
             formData.append('file', selectedImage);
-
+    
             console.log(`Sử dụng model: ${selectedModel}`);
-            const response = await fetch(`http://localhost:8000/detect?model_type=${selectedModel}`, {
+            const response = await fetch(`http://localhost:8000/api/detect?model_type=${selectedModel}`, {
                 method: 'POST',
                 body: formData,
             });
-
+    
             if (!response.ok) {
                 let errorMessage;
                 try {
@@ -163,13 +168,31 @@ const TrafficSignDetection = () => {
                 }
                 throw new Error(errorMessage);
             }
-
+    
             const data = await response.json();
             console.log('Bounding box received:', data.bounding_box);
-            
+    
             // Lưu bounding box gốc
             setOriginalBoundingBox(data.bounding_box);
-            
+    
+            // Lưu kết quả detect vào localStorage theo user
+            const user = JSON.parse(localStorage.getItem('user'));
+            const userId = user?.id;
+    
+            const detectedSample = {
+                id: Date.now(),
+                name: `detect_${new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15)}`,
+                imagePath: URL.createObjectURL(selectedImage),
+                date: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                boundingBox: data.bounding_box,
+                modelUsed: selectedModel
+            };
+    
+            const key = `detectedResults_${userId}`;
+            const previous = JSON.parse(localStorage.getItem(key)) || [];
+            const updated = [...previous, detectedSample];
+            localStorage.setItem(key, JSON.stringify(updated));
+    
         } catch (err) {
             console.error('Error during detection:', err);
             setError(`${err.message}`);
@@ -177,6 +200,7 @@ const TrafficSignDetection = () => {
             setLoading(false);
         }
     };
+    
 
     const handleImageLoad = () => {
         console.log("Image loaded successfully");
@@ -197,8 +221,8 @@ const TrafficSignDetection = () => {
             <header className="detection-header">
                 <h1>Nhận diện biển báo giao thông</h1>
                 <div className="header-actions">
-                    <Link to="/traffic-signs" className="back-button">Quay lại danh sách</Link>
-                    <Link to="/traffic-signs/classify" className="classify-link">Đến trang Phân loại</Link>
+                    {/* <Link to="/traffic-signs" className="back-button">Quay lại danh sách</Link> */}
+                    <Link to="/vision/classify" className="classify-link">Đến trang Phân loại</Link>
                 </div>
             </header>
             
@@ -300,7 +324,7 @@ const TrafficSignDetection = () => {
                                 <p>Model sử dụng: <strong>{selectedModel.toUpperCase()}</strong></p>
                             </div>
                             <div className="detection-tip">
-                                <p>Để phân loại biển báo này, hãy chuyển đến trang <Link to="/traffic-signs/classify" className="inline-link">Phân loại biển báo</Link> và tải lên ảnh chỉ chứa biển báo.</p>
+                                <p>Để phân loại biển báo này, hãy chuyển đến trang <Link to="/vision/classify" className="inline-link">Phân loại biển báo</Link> và tải lên ảnh chỉ chứa biển báo.</p>
                             </div>
                         </div>
                     )}

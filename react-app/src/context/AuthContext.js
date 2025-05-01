@@ -8,17 +8,23 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Kiểm tra xem người dùng đã đăng nhập chưa khi load trang
         const user = localStorage.getItem('user');
         const storedToken = localStorage.getItem('token');
-        
-        if (user && storedToken) {
-            setCurrentUser(JSON.parse(user));
-            setToken(storedToken);
+
+        try {
+            if (user && user !== 'undefined' && storedToken) {
+                setCurrentUser(JSON.parse(user));
+                setToken(storedToken);
+            }
+        } catch (err) {
+            console.error('Lỗi parse user từ localStorage:', err);
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
         }
-        
+
         setLoading(false);
     }, []);
+
 
     const login = (userData, userToken) => {
         localStorage.setItem('user', JSON.stringify(userData));

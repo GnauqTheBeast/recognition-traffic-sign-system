@@ -49,13 +49,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
-    @Override
     public User createUser(User user) {
-        User existingUser = getUserByEmail(user.getEmail());
+        User existingUser = userRepository.findByEmail(user.getEmail());
 
         if (existingUser != null) {
             throw new IllegalArgumentException("User with this email already exists");
@@ -66,7 +61,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User authenticateUser(String email, String password) {
-        User user = getUserByEmail(email);
+        User user = userRepository.findByEmail(email);
 
         if (user == null || !user.getPassword().equals(password)) {
             throw new IllegalArgumentException("Invalid email or password");

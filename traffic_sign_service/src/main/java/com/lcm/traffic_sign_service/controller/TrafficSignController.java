@@ -3,19 +3,13 @@ package com.lcm.traffic_sign_service.controller;
 import com.lcm.traffic_sign_service.dto.TrafficSignRequest;
 import com.lcm.traffic_sign_service.entity.TrafficSign;
 import com.lcm.traffic_sign_service.service.TrafficSignService;
-import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -128,7 +122,7 @@ public class TrafficSignController {
 //    }
 
     @PostMapping
-    public ResponseEntity<?> uploadTrafficSign(
+    public ResponseEntity<?> addTrafficSign(
             @RequestPart("data") TrafficSignRequest data,
             @RequestPart("image") MultipartFile imageFile) throws IOException {
 

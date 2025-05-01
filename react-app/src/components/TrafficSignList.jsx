@@ -30,7 +30,7 @@ const TrafficSignList = () => {
     <div className="traffic-sign-container">
       <div className="header-bar">
         <h1 className="header-title">Traffic Signs Management</h1>
-        <Link to="/traffic-signs/new" className="add-button">
+        <Link to="/admin/traffic-signs/new" className="add-button">
           Add New Traffic Sign
         </Link>
       </div>
@@ -73,7 +73,7 @@ const TrafficSignList = () => {
                 <td>{sign.xMax}</td>
                 <td>{sign.yMax}</td>
                 <td>
-                  <Link to={`/traffic-signs/${sign.id}/edit`} className="btn-action edit-link">
+                  <Link to={`/admin/traffic-signs/${sign.id}/edit`} className="btn-action edit-link">
                     Edit
                   </Link>
                 </td>

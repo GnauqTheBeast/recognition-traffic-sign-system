@@ -84,7 +84,8 @@ function UserList() {
                             <th>Email</th>
                             <th>Avatar</th>
                             <th>Created At</th>
-                            <th>Actions</th>
+                            <th>Edit</th>
+                            <th>Delete</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -107,10 +108,12 @@ function UserList() {
                                     {new Date(user.createdAt).toLocaleDateString()}
                                 </td>
                                 <td className="actions-cell">
-                                    <Link to={`/users/${user.id}/edit`} className="edit-button">Edit</Link>
+                                    <Link to={`/admin/users/${user.id}/edit`} className="edit-button">Edit</Link>
+                                </td>
+                                <td>
                                     <button 
                                         onClick={() => handleDelete(user.id)} 
-                                        className="delete-button"
+                                        className="delete-btn"
                                     >
                                         Delete
                                     </button>

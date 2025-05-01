@@ -5,7 +5,7 @@ import '../styles/Login.css';
 
 const Login = () => {
     const [formData, setFormData] = useState({
-        username: '',
+        email: '',
         password: ''
     });
     const [error, setError] = useState('');
@@ -30,7 +30,7 @@ const Login = () => {
         setMessage('');
         
         try {
-            const response = await fetch('/api/users/login', {
+            const response = await fetch('http://localhost:8080/api/users/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -44,11 +44,9 @@ const Login = () => {
                 throw new Error(data.message || 'Đăng nhập thất bại');
             }
             
-            // Sử dụng context để đăng nhập
             login(data.user, data.token);
             
-            // Chuyển hướng đến trang chính hoặc trang được chỉ định
-            const redirectPath = location.state?.from?.pathname || '/';
+            const redirectPath = '/';
             navigate(redirectPath);
         } catch (err) {
             setError(err.message);
@@ -65,12 +63,12 @@ const Login = () => {
                 {error && <div className="error-message">{error}</div>}
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label htmlFor="username">Tên đăng nhập</label>
+                        <label htmlFor="email">Email</label>
                         <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            value={formData.username}
+                            type="email"
+                            id="email"
+                            name="email"
+                            value={formData.email}
                             onChange={handleChange}
                             required
                         />

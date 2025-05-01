@@ -19,7 +19,7 @@ const TrafficSignClassification = () => {
 
     const fetchAvailableModels = async () => {
         try {
-            const response = await fetch('http://localhost:8000/models');
+            const response = await fetch('http://localhost:8000/api/models');
             if (!response.ok) {
                 throw new Error("Không thể lấy danh sách model");
             }
@@ -41,7 +41,6 @@ const TrafficSignClassification = () => {
         }
     };
 
-    // Xóa URL cũ khi component unmount để tránh memory leak
     useEffect(() => {
         return () => {
             if (imageUrl) {
@@ -50,32 +49,41 @@ const TrafficSignClassification = () => {
         };
     }, [imageUrl]);
 
-    const handleModelChange = async (model) => {
+    const handleModelChange = async (modelType) => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:8000/set-model', {
+            
+            const modelData = {
+                model_type: modelType  
+            };
+            
+            console.log("Sending model data:", JSON.stringify(modelData)); // Log để debug
+            
+            const response = await fetch('http://localhost:8000/api/set-model', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(model)
+                body: JSON.stringify(modelData)
             });
             
             if (!response.ok) {
-                throw new Error("Không thể thay đổi model");
+                const errorData = await response.json();
+                console.error("API Error:", errorData);
+                throw new Error(`Không thể thay đổi model: ${JSON.stringify(errorData)}`);
             }
             
             const data = await response.json();
+            console.log("Success response:", data); 
             setSelectedModel(data.current_model);
-            
-            // Reset results when changing model
-            setClassificationResult(null);
+        
         } catch (err) {
+            console.error("Error details:", err);
             setError(`Lỗi khi thay đổi model: ${err.message}`);
         } finally {
             setLoading(false);
         }
-    };
+    }; 
 
     const handleImageUpload = () => {
         fileInputRef.current.click();
@@ -92,7 +100,7 @@ const TrafficSignClassification = () => {
             formData.append('file', selectedImage);
 
             console.log(`Sử dụng model: ${selectedModel}`);
-            const response = await fetch(`http://localhost:8000/classify?model_type=${selectedModel}`, {
+            const response = await fetch(`http://localhost:8000/api/classify?model_type=${selectedModel}`, {
                 method: 'POST',
                 body: formData,
             });
@@ -112,6 +120,33 @@ const TrafficSignClassification = () => {
             console.log('Classification result:', data);
             
             setClassificationResult(data);
+
+            const classifiedSample = {
+                id: Date.now(),
+                name: `classify_${new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15)}`,
+                imagePath: URL.createObjectURL(selectedImage),
+                date: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                classId: data.classId,
+                signName: data.sign_name,
+                confidence: data.confidence,
+                modelUsed: selectedModel,
+                trafficSigns: [
+                    {
+                        id: data.classId + 200, 
+                        type: `class_${data.classId}`,
+                        label: data.label
+                    }
+                ]
+            };
+
+            const user = JSON.parse(localStorage.getItem('user'));
+            const userId = user?.id;
+
+            const key = `classifiedResults_${userId}`;
+            const previous = JSON.parse(localStorage.getItem(key)) || [];
+            const updated = [...previous, classifiedSample];
+            localStorage.setItem(key, JSON.stringify(updated));
+
         } catch (err) {
             console.error('Error during classification:', err);
             setError(`${err.message}`);
@@ -129,8 +164,8 @@ const TrafficSignClassification = () => {
             <header className="classification-header">
                 <h1>Phân loại biển báo giao thông</h1>
                 <div className="header-actions">
-                    <Link to="/traffic-signs" className="back-button">Quay lại danh sách</Link>
-                    <Link to="/traffic-signs/detect" className="detect-link">Đến trang Nhận diện</Link>
+                    {/* <Link to="/traffic-signs" className="back-button">Quay lại danh sách</Link> */}
+                    <Link to="/vision/detect" className="detect-link">Đến trang Nhận diện</Link>
                 </div>
             </header>
             

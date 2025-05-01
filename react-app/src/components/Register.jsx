@@ -8,8 +8,10 @@ const Register = () => {
         password: '',
         confirmPassword: '',
         email: '',
-        fullName: ''
+        firstName: '',
+        lastName: ''
     });
+    
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -31,35 +33,41 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+    
         if (!validateForm()) {
             return;
         }
-        
+    
         setLoading(true);
         setError('');
-        
+    
         try {
-            // Loại bỏ confirmPassword trước khi gửi
-            const { confirmPassword, ...registrationData } = formData;
-            
-            const response = await fetch('/api/users/register', {
+            const { confirmPassword, firstName, lastName, ...rest } = formData;
+    
+            const registrationData = {
+                ...rest,
+                fullName: {
+                    firstName,
+                    lastName
+                }
+            };
+    
+            const response = await fetch('http://localhost:8080/api/users/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(registrationData)
             });
-            
+    
             const data = await response.json();
-            
+    
             if (!response.ok) {
                 throw new Error(data.message || 'Đăng ký thất bại');
             }
-            
-            // Đăng ký thành công, chuyển hướng đến trang đăng nhập
-            navigate('/login', { 
-                state: { message: 'Đăng ký thành công! Vui lòng đăng nhập.' } 
+    
+            navigate('/login', {
+                state: { message: 'Đăng ký thành công! Vui lòng đăng nhập.' }
             });
         } catch (err) {
             setError(err.message);
@@ -67,6 +75,7 @@ const Register = () => {
             setLoading(false);
         }
     };
+    
 
     return (
         <div className="register-container">
@@ -96,17 +105,30 @@ const Register = () => {
                             required
                         />
                     </div>
+
                     <div className="form-group">
-                        <label htmlFor="fullName">Họ và tên</label>
+                        <label htmlFor="firstName">Họ</label>
                         <input
                             type="text"
-                            id="fullName"
-                            name="fullName"
-                            value={formData.fullName}
+                            id="firstName"
+                            name="firstName"
+                            value={formData.firstName}
                             onChange={handleChange}
                             required
                         />
                     </div>
+                    <div className="form-group">
+                        <label htmlFor="lastName">Tên</label>
+                        <input
+                            type="text"
+                            id="lastName"
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
                     <div className="form-group">
                         <label htmlFor="password">Mật khẩu</label>
                         <input

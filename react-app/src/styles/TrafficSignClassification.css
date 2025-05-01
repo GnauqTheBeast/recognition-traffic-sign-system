@@ -193,3 +193,13 @@ h1 {
 .model-info strong {
     color: #1e40af;
 }
+
+.detect-link {
+    padding: 10px 16px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    background-color: #8b5cf6;
+    border-radius: 6px;
+    margin: 5px;
+}

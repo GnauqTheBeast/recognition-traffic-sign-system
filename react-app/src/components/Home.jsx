@@ -7,10 +7,10 @@ const Home = () => {
 
     return (
         <div className="home-container">
-            <h1>Đây là trang admin.</h1>
+            <h1>Traffic Sign Vision System - Admin Page</h1>
             <div className="button-group">
-                <button onClick={() => navigate('/users')}>Quản lý User</button>
-                <button onClick={() => navigate('/traffic-signs')}>Quản lý Biển báo giao thông</button>
+                <button onClick={() => navigate('/admin/users')}>User Management</button>
+                <button onClick={() => navigate('/admin/traffic-signs')}>Traffic Sign Management</button>
             </div>
         </div>
     );
