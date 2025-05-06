@@ -30,9 +30,30 @@ function ClassifyPage() {
           <p>Chưa có mẫu nào được phân loại.</p>
         ) : (
           classifiedSamples.map(sample => (
-            <div className="sample-card" key={sample.id}>
-              <img src={sample.imagePath} alt={sample.name} />
-              <h3>{sample.name}</h3>
+            <div
+              key={sample.id}
+              style={{
+                width: '200px',
+                padding: '12px',
+                border: '1px solid #ddd',
+                borderRadius: '10px',
+                textAlign: 'center',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                margin: '10px'
+              }}
+            >
+              <img
+                src={sample.imagePath}
+                alt={sample.name}
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  borderRadius: '6px'
+                }}
+              />
+              <h3 style={{ fontSize: '16px', margin: '8px 0 4px', color: '#333' }}>
+                {sample.name}
+              </h3>
               <p><strong>Date:</strong> {sample.date}</p>
               <p><strong>Model:</strong> {sample.modelUsed}</p>
               <p><strong>Label:</strong> {sample.signName}</p>

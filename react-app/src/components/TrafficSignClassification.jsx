@@ -49,40 +49,8 @@ const TrafficSignClassification = () => {
         };
     }, [imageUrl]);
 
-    const handleModelChange = async (modelType) => {
-        try {
-            setLoading(true);
-            
-            const modelData = {
-                model_type: modelType  
-            };
-            
-            console.log("Sending model data:", JSON.stringify(modelData)); // Log để debug
-            
-            const response = await fetch('http://localhost:8000/api/set-model', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(modelData)
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("API Error:", errorData);
-                throw new Error(`Không thể thay đổi model: ${JSON.stringify(errorData)}`);
-            }
-            
-            const data = await response.json();
-            console.log("Success response:", data); 
-            setSelectedModel(data.current_model);
-        
-        } catch (err) {
-            console.error("Error details:", err);
-            setError(`Lỗi khi thay đổi model: ${err.message}`);
-        } finally {
-            setLoading(false);
-        }
+    const handleModelChange = async (modelType) => { 
+        setSelectedModel(modelType);
     }; 
 
     const handleImageUpload = () => {
