@@ -10,74 +10,73 @@ const EditTrafficSign = () => {
         name: '',
         description: '',
         type: '',
-        imageUrl: '',
+        imageFile: null,
         xMin: '',
         yMin: '',
         xMax: '',
-        yMax: ''
+        yMax: '',
     });
 
     const [previewUrl, setPreviewUrl] = useState('');
-    const [imageFile, setImageFile] = useState(null);
-    const [error, setError] = useState(null);
+    const [errorMessage, setErrorMessage] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const sign = await TrafficSignService.getTrafficSignById(id);
-                setFormData(sign);
+                setFormData({ ...sign, imageFile: null }); // Reset file input
                 setPreviewUrl(sign.imageUrl);
             } catch (err) {
                 console.error('Error fetching traffic sign:', err);
-                setError('Failed to load traffic sign data');
+                setErrorMessage('Failed to load traffic sign data');
             }
         };
         fetchData();
     }, [id]);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-        setError(null);
-    };
+        const { name, value, type } = e.target;
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setImageFile(file);
-            setPreviewUrl(URL.createObjectURL(file));
+        if (type === 'file') {
+            const file = e.target.files[0];
+            if (file) {
+                setFormData({ ...formData, imageFile: file });
+                setPreviewUrl(URL.createObjectURL(file));
+            }
+        } else {
+            setFormData({ ...formData, [name]: value });
         }
+        setErrorMessage(null);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            let imageUrl = formData.imageUrl;
+            const data = {
+                name: formData.name,
+                description: formData.description,
+                type: formData.type,
+                xMin: formData.xMin,
+                yMin: formData.yMin,
+                xMax: formData.xMax,
+                yMax: formData.yMax,
+                imageFile: formData.imageFile,
+            };
 
-            // Nếu có file mới thì upload
-            if (imageFile) {
-                const uploadData = new FormData();
-                uploadData.append('file', imageFile);
-
-                const response = await TrafficSignService.uploadImage(uploadData);
-                imageUrl = response.url; // Đảm bảo API trả về { url: '...' }
-            }
-
-            const updatedData = { ...formData, imageUrl };
-            await TrafficSignService.updateTrafficSign(id, updatedData);
-            navigate('/traffic-signs');
+            await TrafficSignService.updateTrafficSign(id, data);
+            navigate('/admin/traffic-signs'); // Redirect to the list of traffic signs
         } catch (err) {
             console.error('Error submitting form:', err);
-            setError(err.message || 'Failed to update traffic sign');
+            setErrorMessage(err.message || 'Failed to update traffic sign');
         }
     };
 
     return (
         <div className="form-container">
             <h2>Edit Traffic Sign</h2>
-            {error && (
+            {errorMessage && (
                 <div className="alert alert-danger" role="alert">
-                    {error}
+                    {errorMessage}
                 </div>
             )}
             <form onSubmit={handleSubmit} className="traffic-form">
@@ -91,11 +90,16 @@ const EditTrafficSign = () => {
                 </label>
                 <label>
                     Type:
-                    <input type="text" name="type" value={formData.type} onChange={handleChange} required />
+                    <select name="type" value={formData.type} onChange={handleChange} required>
+                        <option value="" disabled>Select Type</option>
+                        <option value="WARNING">Warning</option>
+                        <option value="PROHIBITION">Prohibition</option>
+                        <option value="INFORMATION">Information</option>
+                    </select>
                 </label>
                 <label>
                     Upload Image:
-                    <input type="file" accept="image/*" onChange={handleFileChange} />
+                    <input type="file" accept="image/*" onChange={handleChange} />
                 </label>
                 {previewUrl && <img src={previewUrl} alt="Preview" className="image-preview" />}
                 <div className="coordinates-group">

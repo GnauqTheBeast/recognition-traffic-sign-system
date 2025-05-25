@@ -48,8 +48,16 @@ const AddTrafficSign = () => {
                 yMax: parseFloat(formData.yMax),
             };
 
-            formDataToSend.append("data", new Blob([JSON.stringify(data)], { type: "application/json" }));
+            // formDataToSend.append("data", new Blob([JSON.stringify(data)], { type: "application/json" }));
+            // formDataToSend.append(
+            //     "data",
+            //     new Blob([JSON.stringify(data)], { type: "application/json" }),
+            //     "data.json" 
+            // );
+            formDataToSend.append("data", JSON.stringify(data));
             formDataToSend.append("image", formData.imageFile);
+
+            console.log(formDataToSend);
 
             const response = await fetch("http://localhost:8080/api/traffic-signs", {
                 method: "POST",
@@ -62,7 +70,7 @@ const AddTrafficSign = () => {
                 throw new Error(errorData.message || "Failed to create traffic sign");
             }
 
-            navigate("/traffic-signs");
+            navigate("/admin/traffic-signs");
         } catch (error) {
             if (error.message.includes("409")) {
                 setErrorMessage("The traffic sign already exists! Please choose a different one.");

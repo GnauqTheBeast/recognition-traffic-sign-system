@@ -1,56 +1,78 @@
-import numpy as np
+# services/model_service.py
+
 from config.settings import ModelType
-from services.cnn_service import load_cnn_models, detect_sign_cnn, classify_sign_cnn, cnn_models_loaded
-from services.yolo_service import load_yolo_model, detect_sign_yolo, classify_sign_yolo, yolo_model_loaded
+from .context import TrafficSignModelContext
+from .cnn_strategy import CNNStrategy
+from .yolo_strategy import YOLOStrategy
+from models import BoundingBox, ClassificationResult
 
-# Biến toàn cục
-current_model_type = ModelType.CNN
-
-def get_model_status():
-    """Lấy trạng thái các model"""
-    return {
-        "available_models": [model.value for model in ModelType],
-        "current_model": current_model_type,
-        "cnn_loaded": cnn_models_loaded,
-        "yolo_loaded": yolo_model_loaded
+class ModelService:
+    _instance = None
+    _current_model_type = ModelType.YOLO
+    _strategies = {
+        ModelType.YOLO: None,
+        ModelType.CNN: None
     }
 
-def get_current_model():
-    """Lấy model hiện tại (dùng nếu cần hiện mặc định)"""
-    return current_model_type
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(ModelService, cls).__new__(cls)
+        return cls._instance
 
-def detectTrafficSignService(image: np.ndarray, model_type: ModelType = None):
-    """Phát hiện biển báo với model được chọn"""
-    use_model = model_type if model_type else current_model_type
+    def __init__(self):
+        if not self._strategies[ModelType.YOLO]:
+            self._initialize_strategies()
 
-    if use_model == ModelType.CNN:
-        return detect_sign_cnn(image), use_model
-    elif use_model == ModelType.YOLO:
-        return detect_sign_yolo(image), use_model
-    else:
-        raise ValueError(f"Model không hợp lệ: {use_model}")
+    def _initialize_strategies(self):
+        """Initialize strategy instances"""
+        self._strategies[ModelType.YOLO] = YOLOStrategy()
+        self._strategies[ModelType.CNN] = CNNStrategy()
 
-def classifyTrafficSignService(image: np.ndarray, model_type: ModelType = None):
-    """Phân loại biển báo với model được chọn"""
-    use_model = model_type if model_type else current_model_type
+    @property
+    def current_model_type(self):
+        """Get current model type"""
+        return self._current_model_type
 
-    if use_model == ModelType.CNN:
-        return classify_sign_cnn(image), use_model
-    elif use_model == ModelType.YOLO:
-        return classify_sign_yolo(image), use_model
-    else:
-        raise ValueError(f"Model không hợp lệ: {use_model}")
+    @current_model_type.setter
+    def current_model_type(self, model_type: ModelType):
+        """Set current model type"""
+        if model_type not in ModelType:
+            raise ValueError(f"Unsupported model type: {model_type}")
+        self._current_model_type = model_type
 
-def initialize_default_model():
-    """Khởi tạo cả 2 model ngay từ đầu"""
-    global current_model_type
-    try:
-        load_cnn_models()
-    except Exception as e:
-        print(f"[Lỗi] Không thể tải CNN: {str(e)}")
+    def get_model_status(self):
+        """Get status of all models"""
+        return {
+            "available_models": [model.value for model in ModelType],
+            "current_model": self._current_model_type.value,
+            "cnn_loaded": self._strategies[ModelType.CNN] is not None,
+            "yolo_loaded": self._strategies[ModelType.YOLO] is not None
+        }
 
-    try:
-        load_yolo_model()
-    except Exception as e:
-        print(f"[Lỗi] Không thể tải YOLO: {str(e)}")
-    
+    def get_strategy(self, model_type: ModelType):
+        """Get strategy instance for specified model type"""
+        if model_type not in self._strategies:
+            raise ValueError(f"Unsupported model type: {model_type}")
+        return self._strategies[model_type]
+
+    def detect_traffic_sign(self, image, model_type: ModelType = None):
+        """Detect traffic sign using specified model type"""
+        if model_type is None:
+            model_type = self._current_model_type
+        
+        strategy = self.get_strategy(model_type)
+        context = TrafficSignModelContext(strategy)
+        return context.detect_sign(image)
+
+    def classify_traffic_sign(self, image, model_type: ModelType = None):
+        """Classify traffic sign using specified model type"""
+        if model_type is None:
+            model_type = self._current_model_type
+        
+        strategy = self.get_strategy(model_type)
+        context = TrafficSignModelContext(strategy)
+        return context.classify_sign(image)
+
+    def get_current_model(self):
+        """Get current model type as string"""
+        return self._current_model_type.value.lower()

@@ -1,42 +1,39 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import tensorflow as tf
-import uvicorn
-
 from controllers.traffic_sign import router as traffic_sign_router
-from services.model_service import initialize_default_model
+from services.model_service import ModelService
 
-tf.config.set_visible_devices([], 'GPU')
+class TrafficSignAPI:
+    def __init__(self):
+        self.app = FastAPI()
+        self.model_service = ModelService()
+        self.configure_middleware()
+        self.include_routers()
 
-app = FastAPI(
-    title="Traffic Sign Recognition API",
-    description="API for detecting and classifying traffic signs with multiple model options",
-    version="1.0.0"
-)
+    def configure_middleware(self):
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    def include_routers(self):
+        self.app.include_router(traffic_sign_router, prefix="/api", tags=["traffic-sign"])
 
-app.include_router(traffic_sign_router, prefix="/api")
+    def add_routes(self):
+        @self.app.get("/")
+        async def root():
+            return {"message": "Traffic Sign Detection API"}
 
-@app.on_event("startup")
-async def startup_event():
-    """Khởi tạo model khi ứng dụng khởi động"""
-    initialize_default_model()
 
-@app.get("/")
-async def root():
-    """API root endpoint"""
-    return {
-        "message": "Traffic Sign Recognition API",
-        "docs": "/docs",
-        "health": "/api/health"
-    }
+def create_app():
+    api = TrafficSignAPI()
+    api.add_routes()
+    return api.app
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    import uvicorn
+    app = create_app()
+    uvicorn.run(app, host="0.0.0.0", port=8000)

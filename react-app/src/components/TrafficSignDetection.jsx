@@ -7,6 +7,7 @@ const TrafficSignDetection = () => {
     const [imageUrl, setImageUrl] = useState(null);
     const [originalBoundingBox, setOriginalBoundingBox] = useState(null);
     const [displayBoundingBox, setDisplayBoundingBox] = useState(null);
+    const [detectResult, setdetectResult] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [availableModels, setAvailableModels] = useState([]);
@@ -155,6 +156,8 @@ const TrafficSignDetection = () => {
                 boundingBox: data.bounding_box,
                 modelUsed: selectedModel
             };
+
+            setdetectResult(selectedModel);
     
             const key = `detectedResults_${userId}`;
             const previous = JSON.parse(localStorage.getItem(key)) || [];
@@ -289,7 +292,7 @@ const TrafficSignDetection = () => {
                                 </div>
                             </div>
                             <div className="model-info">
-                                <p>Model sử dụng: <strong>{selectedModel.toUpperCase()}</strong></p>
+                                <p>Model sử dụng: <strong>{detectResult.toUpperCase()}</strong></p>
                             </div>
                             <div className="detection-tip">
                                 <p>Để phân loại biển báo này, hãy chuyển đến trang <Link to="/vision/classify" className="inline-link">Phân loại biển báo</Link> và tải lên ảnh chỉ chứa biển báo.</p>

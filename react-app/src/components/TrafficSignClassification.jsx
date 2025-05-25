@@ -77,6 +77,7 @@ const TrafficSignClassification = () => {
                 let errorMessage;
                 try {
                     const errorData = await response.json();
+                    console.error('Server error details:', errorData);
                     errorMessage = errorData.detail || `HTTP Error: ${response.status}`;
                 } catch (e) {
                     errorMessage = `HTTP Error: ${response.status}`;
@@ -85,24 +86,44 @@ const TrafficSignClassification = () => {
             }
 
             const data = await response.json();
-            console.log('Classification result:', data);
+            console.log('Raw server response:', data);
+
+            // Ensure the response matches the expected format
+            if (!data.label && data.class_id !== undefined) {
+                // Convert old format to new format
+                data = {
+                    label: {
+                        id: data.class_id,
+                        name: data.sign_name || `Class ${data.class_id}`
+                    },
+                    confidence: data.confidence,
+                    model_used: data.model_used || selectedModel,
+                    sample_id: data.sample_id
+                };
+            }
+            
+            console.log('Processed classification result:', data);
+            
+            if (!data.label || !data.confidence || !data.model_used) {
+                throw new Error('Invalid response format from server');
+            }
             
             setClassificationResult(data);
 
             const classifiedSample = {
-                id: Date.now(),
+                id: data.sample_id || Date.now(),
                 name: `classify_${new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15)}`,
                 imagePath: URL.createObjectURL(selectedImage),
                 date: new Date().toISOString().slice(0, 19).replace('T', ' '),
-                classId: data.classId,
-                signName: data.sign_name,
+                classId: data.label.id,
+                signName: data.label.name,
                 confidence: data.confidence,
-                modelUsed: selectedModel,
+                modelUsed: data.model_used,
                 trafficSigns: [
                     {
-                        id: data.classId + 200, 
-                        type: `class_${data.classId}`,
-                        label: data.label
+                        id: data.label.id + 200, 
+                        type: `class_${data.label.id}`,
+                        label: data.label.name
                     }
                 ]
             };
@@ -204,11 +225,11 @@ const TrafficSignClassification = () => {
                         <div className="result-card">
                             <div className="result-item">
                                 <span className="result-label">Loại biển báo:</span>
-                                <span className="result-value">{classificationResult.sign_name}</span>
+                                <span className="result-value">{classificationResult.label.name}</span>
                             </div>
                             <div className="result-item">
                                 <span className="result-label">Mã biển báo:</span>
-                                <span className="result-value">#{classificationResult.class_id}</span>
+                                <span className="result-value">#{classificationResult.label.id}</span>
                             </div>
                             <div className="result-item">
                                 <span className="result-label">Độ tin cậy:</span>

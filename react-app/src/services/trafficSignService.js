@@ -5,10 +5,18 @@ const ALLOWED_TYPES = ['WARNING', 'PROHIBITION', 'INFORMATION'];
 const normalizeTrafficSignType = (type) => type.trim().toUpperCase();
 
 const validateTrafficSign = (trafficSign) => {
-    const { name, description, imageUrl, type, xMin, yMin, xMax, yMax } = trafficSign;
+    const { name, description, type, xMin, yMin, xMax, yMax } = trafficSign;
 
-    if (!name || !description || !imageUrl || !type) {
-        throw new Error('All fields are required');
+    if (!name || !name.trim()) {
+        throw new Error('Name is required and cannot be empty');
+    }
+
+    if (!description || !description.trim()) {
+        throw new Error('Description is required and cannot be empty');
+    }
+
+    if (!type || !type.trim()) {
+        throw new Error('Type is required and cannot be empty');
     }
 
     const normalizedType = normalizeTrafficSignType(type);
@@ -37,7 +45,8 @@ const validateTrafficSign = (trafficSign) => {
     }
 
     return {
-        ...trafficSign,
+        name: name.trim(),
+        description: description.trim(),
         type: normalizedType,
         xMin: parsedXMin,
         yMin: parsedYMin,
@@ -91,14 +100,24 @@ export const TrafficSignService = {
     },
 
     updateTrafficSign: (id, trafficSign) => {
-        const payload = validateTrafficSign(trafficSign);
+        console.log('Updating traffic sign with ID:', id);
+        console.log('Traffic sign data:', trafficSign);
+
+        const validatedData = validateTrafficSign(trafficSign);
+        const formData = new FormData();
+        
+        formData.append('data', JSON.stringify(validatedData));
+        
+        if (trafficSign.imageFile && trafficSign.imageFile instanceof File) {
+            formData.append('image', trafficSign.imageFile);
+        }
+
         return fetch(`${API_BASE_URL}/${id}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
                 'Accept': 'application/json',
             },
-            body: JSON.stringify(payload),
+            body: formData,
         })
             .then(res => {
                 if (!res.ok) {
@@ -106,6 +125,9 @@ export const TrafficSignService = {
                         console.error('Error response:', errorData);
                         if (res.status === 409) {
                             throw new Error('Name already exists');
+                        }
+                        if (res.status === 404) {
+                            throw new Error('Traffic sign not found');
                         }
                         throw new Error(errorData.message || 'Failed to update traffic sign');
                     });
