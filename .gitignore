@@ -5,8 +5,12 @@ node_modules
 
 venv
 data
-models
 gtsrb-german-traffic-sign
 process_kaggle_data.py
 AI_service/__pycache__
 uploads
+
+*.pyc
+*.pt
+*.keras
+*.h5
