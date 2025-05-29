@@ -88,7 +88,6 @@ class CNNService:
             class_id = int(np.argmax(pred))
             confidence = float(pred[class_id])
             
-            # Tạo Label object
             label = Label(
                 id=class_id,
                 name=SIGN_NAMES.get(class_id, "Unknown")

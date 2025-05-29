@@ -1,9 +1,15 @@
 import numpy as np
 import time
 from utils.image_utils import resize_image_for_yolo
-from config.settings import YOLO_MODEL_PATH, MAX_IMAGE_SIZE
+from config.settings import SIGN_NAMES, YOLO_MODEL_PATH, MAX_IMAGE_SIZE
 from models import BoundingBox, ClassificationResult, Label, ClassificationResponse
 from services.label_service import LabelService
+import cv2
+from typing import Generator, Tuple
+from pathlib import Path
+import uuid
+from fastapi import HTTPException
+import shutil
 
 class YOLOService:
     _instance = None
@@ -19,6 +25,9 @@ class YOLOService:
         if not self._model_loaded:
             self._load_model()
         self.label_service = LabelService()
+        self.valid_extensions = ('.mp4', '.avi', '.mov')
+        self.output_dir = Path("output_videos")
+        self.output_dir.mkdir(exist_ok=True)
 
     def _load_model(self):
         """Load YOLO model using singleton pattern"""
@@ -115,11 +124,12 @@ class YOLOService:
                 
                 class_id = int(box.cls[0].item())
                 confidence = float(box.conf[0].item())
-                
-                label = self.label_service.get_label(class_id)
-                if not label:
-                    label = Label(id=0, name="Unknown")
-                
+            
+                label = Label(
+                    id=class_id,
+                    name=SIGN_NAMES.get(class_id, "Unknown")
+                )
+
                 return ClassificationResult(
                     label=label,
                     confidence=confidence
@@ -142,3 +152,104 @@ class YOLOService:
         x1, y1 = int(w * 0.25), int(h * 0.25)
         x2, y2 = int(w * 0.75), int(h * 0.75)
         return BoundingBox(x1=x1, y1=y1, x2=x2, y2=y2)
+
+    def process_video(self, video_content: bytes, filename: str) -> Path:
+        if not filename.lower().endswith(self.valid_extensions):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Định dạng tệp không hợp lệ. Các định dạng được hỗ trợ: {self.valid_extensions}"
+            )
+
+        temp_file = Path(f"temp_{uuid.uuid4()}_{filename}")
+        output_name = f"detect_{uuid.uuid4().hex[:8]}"
+        
+        try:
+            # Tạo thư mục output nếu chưa tồn tại
+            self.output_dir.mkdir(exist_ok=True)
+            
+            # Lưu video input vào file tạm
+            with temp_file.open("wb") as buffer:
+                buffer.write(video_content)
+            
+            print(f"Tệp tạm đã được tạo: {temp_file}")
+
+            results = self._model.predict(
+                source=str(temp_file),
+                save=True,
+                project=str(self.output_dir),
+                name=output_name,
+                stream=True,
+                conf=0.25,
+                show_labels=False,
+                show_conf=False,
+                line_width=2,
+                save_txt=False
+            )
+
+            # Process all frames
+            results_list = list(results)
+            print(f"Đã xử lý {len(results_list)} khung hình")
+
+            # Tìm file output trong thư mục predict/output_name
+            predict_dir = self.output_dir / output_name
+            video_files = [
+                f for f in predict_dir.glob("*")
+                if f.is_file() and f.suffix.lower() in self.valid_extensions
+            ]
+            
+            if not video_files:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Không tạo được tệp video đầu ra"
+                )
+
+            output_path = video_files[0]
+            final_output = self.output_dir / f"result_{filename}"
+            
+            # Copy file kết quả ra thư mục output chính
+            shutil.copy2(output_path, final_output)
+            
+            # Cleanup thư mục predict và file tạm
+            shutil.rmtree(predict_dir)
+            temp_file.unlink()
+            
+            return final_output
+
+        except Exception as e:
+            # Cleanup trong trường hợp lỗi
+            if temp_file.exists():
+                temp_file.unlink()
+            if 'predict_dir' in locals() and predict_dir.exists():
+                shutil.rmtree(predict_dir)
+            raise e
+
+    def process_video_batch(self, video_array: np.ndarray, batch_size: int = 4):
+        """Process video in batches for better performance"""
+        cap = cv2.VideoCapture()
+        cap.open(video_array)
+
+        frames = []
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+            
+            frames.append(frame)
+            if len(frames) == batch_size:
+                # Xử lý batch frames
+                results = self._model.predict(
+                    source=frames,
+                    conf=0.25,
+                    iou=0.45,
+                    verbose=False
+                )
+                
+                # Xử lý và yield từng frame với kết quả
+                for frame, result in zip(frames, results):
+                    processed_frame = self._process_detection_result(frame, result)
+                    _, buffer = cv2.imencode('.jpg', processed_frame)
+                    yield buffer.tobytes()
+                
+                frames = []
+
+        cap.release()

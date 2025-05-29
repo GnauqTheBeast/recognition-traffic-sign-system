@@ -5,6 +5,8 @@ from .context import TrafficSignModelContext
 from .cnn_strategy import CNNStrategy
 from .yolo_strategy import YOLOStrategy
 from models import BoundingBox, ClassificationResult
+from ultralytics import YOLO
+from pathlib import Path
 
 class ModelService:
     _instance = None
@@ -22,6 +24,7 @@ class ModelService:
     def __init__(self):
         if not self._strategies[ModelType.YOLO]:
             self._initialize_strategies()
+        self.yolo_model = None
 
     def _initialize_strategies(self):
         """Initialize strategy instances"""
@@ -73,6 +76,6 @@ class ModelService:
         context = TrafficSignModelContext(strategy)
         return context.classify_sign(image)
 
-    def get_current_model(self):
-        """Get current model type as string"""
-        return self._current_model_type.value.lower()
+    def process_video(self, video_content: bytes, filename: str, model_type: ModelType = ModelType.YOLO) -> Path:
+        self.current_model_type = model_type
+        return self._strategies[model_type].process_video(video_content, filename)

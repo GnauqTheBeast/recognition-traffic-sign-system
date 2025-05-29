@@ -12,6 +12,8 @@ import AddUser from './components/AddUser';
 import EditUser from './components/EditUser';
 import TrafficSignDetection from './components/TrafficSignDetection';
 import TrafficSignClassification from './components/TrafficSignClassification';
+import VideoTrafficSignDetection from './components/VideoTrafficSignDetection';
+import VideoDetectionHistory from './components/VideoDetectionHistory';
 
 import DetectPage from './components/DetectPage';
 import ClassifyPage from './components/ClassifyPage';
@@ -71,6 +73,16 @@ function App() {
                 <Route path="/vision/detect" element={
                     <PrivateRoute>
                         <TrafficSignDetection />
+                    </PrivateRoute>
+                } />
+                <Route path="/vision/detect-video" element={
+                    <PrivateRoute>
+                        <VideoTrafficSignDetection />
+                    </PrivateRoute>
+                } />
+                <Route path="/detect-video" element={
+                    <PrivateRoute>
+                        <VideoDetectionHistory />
                     </PrivateRoute>
                 } />
                 <Route path="/vision/classify" element={

@@ -29,7 +29,7 @@
     gap: 10px;
 }
 
-.back-button, .classify-link {
+.back-button, .classify-link, .detect-video-link {
     padding: 8px 16px;
     border-radius: 6px;
     text-decoration: none;
@@ -58,6 +58,16 @@
 
 .classify-link:hover {
     background-color: #7c3aed;
+}
+
+.detect-video-link {
+    background-color: #10b981;
+    color: white;
+    border: 1px solid #059669;
+}
+
+.detect-video-link:hover {
+    background-color: #059669;
 }
 
 .upload-section {

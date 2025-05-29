@@ -1,0 +1,78 @@
+.history-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #eee;
+}
+
+.history-header h1 {
+    margin: 0;
+    color: #333;
+}
+
+.back-link {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.back-link:hover {
+    background-color: #45a049;
+}
+
+.no-history {
+    text-align: center;
+    padding: 50px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    color: #666;
+}
+
+.history-list {
+    display: grid;
+    gap: 20px;
+}
+
+.history-item {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.item-info {
+    margin-bottom: 15px;
+}
+
+.item-info h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.item-info p {
+    margin: 5px 0;
+    color: #666;
+}
+
+.video-preview {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.history-video {
+    width: 100%;
+    border-radius: 4px;
+    background-color: #000;
+} 

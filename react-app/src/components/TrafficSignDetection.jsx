@@ -192,7 +192,7 @@ const TrafficSignDetection = () => {
             <header className="detection-header">
                 <h1>Nhận diện biển báo giao thông</h1>
                 <div className="header-actions">
-                    {/* <Link to="/traffic-signs" className="back-button">Quay lại danh sách</Link> */}
+                    <Link to="/vision/detect-video" className="detect-video-link">Nhận diện từ video</Link>
                     <Link to="/vision/classify" className="classify-link">Đến trang Phân loại</Link>
                 </div>
             </header>
