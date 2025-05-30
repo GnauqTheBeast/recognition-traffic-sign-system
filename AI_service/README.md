@@ -1,12 +1,12 @@
-# Hệ Thống Nhận Diện Biển Báo Giao Thông
+# Hệ Thống Nhận dạng Biển Báo Giao Thông
 
-Dự án này xây dựng một hệ thống nhận diện biển báo giao thông sử dụng Deep Learning, bao gồm hai mô hình chính:
+Dự án này xây dựng một hệ thống Nhận dạng biển báo giao thông sử dụng Deep Learning, bao gồm hai mô hình chính:
 1. Mô hình phát hiện vùng chứa biển báo
 2. Mô hình phân loại biển báo
 
-## Các Loại Biển Báo Được Nhận Diện
+## Các Loại Biển Báo Được Nhận Dạng
 
-Hệ thống có thể nhận diện 43 loại biển báo giao thông theo tiêu chuẩn GTSRB (German Traffic Sign Recognition Benchmark):
+Hệ thống có thể Nhận dạng 43 loại biển báo giao thông theo tiêu chuẩn GTSRB (German Traffic Sign Recognition Benchmark):
 
 ### 1. Biển Báo Cấm (0-9)
 - 0: Giới hạn tốc độ (20km/h)
@@ -131,7 +131,7 @@ python client_app.py
 
 Các chức năng chính:
 - Chọn ảnh từ máy tính
-- Nhận diện biển báo trong ảnh
+- Nhận dạng biển báo trong ảnh
 - Hiển thị kết quả với bounding box và thông tin phân loại
 
 ## Mô Tả Mô Hình

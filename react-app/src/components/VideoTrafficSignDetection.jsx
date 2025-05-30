@@ -129,9 +129,9 @@ const VideoTrafficSignDetection = () => {
     return (
         <div className="detection-container">
             <header className="detection-header">
-                <h1>Nhận diện biển báo từ video</h1>
+                <h1>Nhận dạng biển báo từ video</h1>
                 <div className="header-actions">
-                    <Link to="/vision/detect" className="detect-link">Đến trang Nhận diện ảnh</Link>
+                    <Link to="/vision/detect" className="detect-link">Đến trang nhận dạng ảnh</Link>
                     <Link to="/detect-video" className="history-link">Xem lịch sử</Link>
                 </div>
             </header>
@@ -172,7 +172,7 @@ const VideoTrafficSignDetection = () => {
                         onClick={detectSigns}
                         disabled={loading}
                     >
-                        {loading ? 'Đang xử lý...' : 'Nhận diện biển báo'}
+                        {loading ? 'Đang xử lý...' : 'Nhận dạng biển báo'}
                     </button>
                 )}
             </div>

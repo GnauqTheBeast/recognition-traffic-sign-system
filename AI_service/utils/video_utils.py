@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 from typing import Generator
+import subprocess
+from pathlib import Path
 
 def create_video_writer(cap: cv2.VideoCapture, output_path: str) -> cv2.VideoWriter:
     """Create video writer with same parameters as input video"""
@@ -23,4 +25,23 @@ def video_frame_generator(video_bytes: bytes) -> Generator[np.ndarray, None, Non
                 break
             yield frame
     finally:
-        cap.release() 
+        cap.release()
+
+def reencode_video(input_path: Path, output_path: Path):
+    """Re-encode video to H.264 + AAC for browser compatibility"""
+    command = [
+        "ffmpeg",
+        "-y",  # Overwrite output
+        "-i", str(input_path),
+        "-vcodec", "libx264",
+        "-preset", "medium",  # Cân bằng giữa tốc độ encode và chất lượng
+        "-crf", "23",  # Chất lượng video (0-51, thấp hơn = chất lượng tốt hơn)
+        "-acodec", "aac",
+        "-strict", "experimental",
+        "-b:a", "128k",  # Bitrate audio
+        str(output_path)
+    ]
+    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    if result.returncode != 0:
+        raise RuntimeError(f"FFmpeg error: {result.stderr.decode()}") 

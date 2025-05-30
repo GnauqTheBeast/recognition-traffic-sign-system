@@ -20,16 +20,16 @@ const VideoDetectionHistory = () => {
     return (
         <div className="history-container">
             <header className="history-header">
-                <h1>Lịch sử nhận diện video</h1>
+                <h1>Lịch sử nhận dạng video</h1>
                 <div className="header-actions">
-                    <Link to="/vision/detect-video" className="back-link">Quay lại trang nhận diện video</Link>
+                    <Link to="/vision/detect-video" className="back-link">Nhận dạng biển báo từ video</Link>
                 </div>
             </header>
 
             <div className="history-content">
                 {detectionHistory.length === 0 ? (
                     <div className="no-history">
-                        <p>Chưa có lịch sử nhận diện video</p>
+                        <p>Chưa có lịch sử nhận dạng video</p>
                     </div>
                 ) : (
                     <div className="history-list">

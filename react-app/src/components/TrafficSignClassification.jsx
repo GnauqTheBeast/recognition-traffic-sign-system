@@ -154,7 +154,7 @@ const TrafficSignClassification = () => {
                 <h1>Phân loại biển báo giao thông</h1>
                 <div className="header-actions">
                     {/* <Link to="/traffic-signs" className="back-button">Quay lại danh sách</Link> */}
-                    <Link to="/vision/detect" className="detect-link">Đến trang Nhận diện</Link>
+                    <Link to="/vision/detect" className="detect-link">Đến trang Nhận dạng</Link>
                 </div>
             </header>
             

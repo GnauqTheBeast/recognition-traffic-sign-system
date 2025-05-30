@@ -190,9 +190,9 @@ const TrafficSignDetection = () => {
     return (
         <div className="detection-container">
             <header className="detection-header">
-                <h1>Nhận diện biển báo giao thông</h1>
+                <h1>Nhận dạng biển báo giao thông</h1>
                 <div className="header-actions">
-                    <Link to="/vision/detect-video" className="detect-video-link">Nhận diện từ video</Link>
+                    <Link to="/vision/detect-video" className="detect-video-link">Nhận dạng từ video</Link>
                     <Link to="/vision/classify" className="classify-link">Đến trang Phân loại</Link>
                 </div>
             </header>
@@ -233,7 +233,7 @@ const TrafficSignDetection = () => {
                         onClick={detectSign}
                         disabled={loading}
                     >
-                        {loading ? 'Đang xử lý...' : 'Nhận diện biển báo'}
+                        {loading ? 'Đang xử lý...' : 'Nhận dạng biển báo'}
                     </button>
                 )}
             </div>
@@ -275,7 +275,7 @@ const TrafficSignDetection = () => {
                 <div className="info-section">
                     {originalBoundingBox && (
                         <div className="detection-info">
-                            <h3>Kết quả nhận diện</h3>
+                            <h3>Kết quả Nhận dạng</h3>
                             <p>Đã phát hiện biển báo tại vị trí:</p>
                             <div className="coordinates">
                                 <div className="coordinate">

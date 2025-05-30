@@ -17,6 +17,7 @@ import io
 import numpy as np
 from fastapi.staticfiles import StaticFiles
 from models.video_detection_responses import VideoDetectionResponse
+from utils.video_utils import reencode_video
 
 class TrafficSignController:
     def __init__(self):
@@ -104,6 +105,7 @@ class TrafficSignController:
             unique_filename = f"{original_name}_{unique_id}.mp4"
             
             content = await file.read()
+            # Xử lý video detection (đã bao gồm re-encode trong service)
             output_path = self.model_service.process_video(
                 video_content=content,
                 filename=unique_filename, 
@@ -113,6 +115,7 @@ class TrafficSignController:
             video_filename = output_path.name
             video_url = f"/api/videos/{video_filename}"
             
+            # Lấy thông tin video
             cap = cv2.VideoCapture(str(output_path))
             frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
             duration = frame_count / cap.get(cv2.CAP_PROP_FPS)

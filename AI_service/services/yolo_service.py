@@ -1,6 +1,7 @@
 import numpy as np
 import time
 from utils.image_utils import resize_image_for_yolo
+from utils.video_utils import reencode_video
 from config.settings import SIGN_NAMES, YOLO_MODEL_PATH, MAX_IMAGE_SIZE
 from models import BoundingBox, ClassificationResult, Label, ClassificationResponse
 from services.label_service import LabelService
@@ -164,7 +165,6 @@ class YOLOService:
         output_name = f"detect_{uuid.uuid4().hex[:8]}"
         
         try:
-            # Tạo thư mục output nếu chưa tồn tại
             self.output_dir.mkdir(exist_ok=True)
             
             # Lưu video input vào file tạm
@@ -206,8 +206,13 @@ class YOLOService:
             output_path = video_files[0]
             final_output = self.output_dir / f"result_{filename}"
             
-            # Copy file kết quả ra thư mục output chính
-            shutil.copy2(output_path, final_output)
+            # Sử dụng trực tiếp hàm utils để re-encode
+            try:
+                reencode_video(output_path, final_output)
+            except Exception as e:
+                print(f"Warning: Could not re-encode video: {str(e)}")
+                # Nếu encode thất bại, copy file gốc
+                shutil.copy2(output_path, final_output)
             
             # Cleanup thư mục predict và file tạm
             shutil.rmtree(predict_dir)
