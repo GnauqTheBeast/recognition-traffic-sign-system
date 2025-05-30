@@ -64,15 +64,14 @@ class TrafficSignController:
         self,
         file: UploadFile = File(...),
         model_type: Optional[ModelType] = Query(None)
-    ):
+    ) -> ClassificationResponse:
         try:
             image = load_image(file)
             result, model_used = self.model_service.classify_traffic_sign(image, model_type)
             
-            return result.to_response(
-                model_used=model_used,
-                sample_id=None
-            )
+            classificationResponse = result.to_response(model_used=model_used)
+
+            return classificationResponse
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
@@ -184,7 +183,7 @@ class TrafficSignController:
             media_type="video/mp4",
             headers=headers,
             filename=filename,
-            method='GET'  # Chỉ định rõ method
+            method='GET'  
         )
 
 traffic_sign_controller = TrafficSignController()
