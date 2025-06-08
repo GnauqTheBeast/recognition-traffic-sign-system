@@ -3,6 +3,7 @@
 from .strategy import TrafficSignStrategy
 from .yolo_service import YOLOService
 from pathlib import Path
+import numpy as np
 
 class YOLOStrategy(TrafficSignStrategy):
     def __init__(self):
@@ -16,3 +17,6 @@ class YOLOStrategy(TrafficSignStrategy):
 
     def process_video(self, video_content: bytes, filename: str) -> Path:
         return self.yolo_service.process_video(video_content, filename)
+
+    def process_stream(self, frame: np.ndarray):
+        return self.yolo_service.process_stream(frame)

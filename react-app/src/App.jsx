@@ -22,6 +22,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 
 import PrivateRoute from './components/PrivateRoute';
+import RTSPStreamDetection from './components/RTSPStreamDetection';
 
 function App() {
     return (
@@ -106,6 +107,15 @@ function App() {
                         <EditUser />
                     </PrivateRoute>
                 } />
+
+                <Route
+                    path="/rtsp-stream"
+                    element={
+                        <PrivateRoute>
+                            <RTSPStreamDetection />
+                        </PrivateRoute>
+                    }
+                />
             </Routes>
         </Router>
     );

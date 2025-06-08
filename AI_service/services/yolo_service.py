@@ -186,11 +186,9 @@ class YOLOService:
                 save_txt=False
             )
 
-            # Process all frames
             results_list = list(results)
             print(f"Đã xử lý {len(results_list)} khung hình")
 
-            # Tìm file output trong thư mục predict/output_name
             predict_dir = self.output_dir / output_name
             video_files = [
                 f for f in predict_dir.glob("*")
@@ -228,33 +226,22 @@ class YOLOService:
                 shutil.rmtree(predict_dir)
             raise e
 
-    def process_video_batch(self, video_array: np.ndarray, batch_size: int = 4):
-        """Process video in batches for better performance"""
-        cap = cv2.VideoCapture()
-        cap.open(video_array)
-
-        frames = []
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break
+    def process_stream(self, frame: np.ndarray):
+        try:
+            resized_frame, _ = resize_image_for_yolo(frame, MAX_IMAGE_SIZE)
             
-            frames.append(frame)
-            if len(frames) == batch_size:
-                # Xử lý batch frames
-                results = self._model.predict(
-                    source=frames,
-                    conf=0.25,
-                    iou=0.45,
-                    verbose=False
-                )
-                
-                # Xử lý và yield từng frame với kết quả
-                for frame, result in zip(frames, results):
-                    processed_frame = self._process_detection_result(frame, result)
-                    _, buffer = cv2.imencode('.jpg', processed_frame)
-                    yield buffer.tobytes()
-                
-                frames = []
+            results = self._model.predict(
+                source=resized_frame,
+                conf=0.25,      # Confidence threshold
+                iou=0.45,       # NMS IoU threshold
+                verbose=False,
+                device='cpu',
+                stream=True     # Enable streaming mode
+            )
+            
+            # Lấy kết quả đầu tiên vì chỉ có một frame
+            return next(results) if results else None
 
-        cap.release()
+        except Exception as e:
+            print(f"Lỗi khi xử lý stream frame với YOLO: {str(e)}")
+            return None
