@@ -18,6 +18,9 @@ import numpy as np
 from fastapi.staticfiles import StaticFiles
 from models.video_detection_responses import VideoDetectionResponse
 from utils.video_utils import reencode_video
+from ultralytics import YOLO
+import asyncio
+from urllib.parse import unquote
 
 class TrafficSignController:
     def __init__(self):
@@ -37,6 +40,7 @@ class TrafficSignController:
         self.router.post("/detect-video-stream")(self.detect_video_stream)
         self.router.delete("/videos/{filename}")(self.delete_video)
         self.router.get("/videos/{filename}")(self.serve_video)
+        self.router.get("/stream-rtsp")(self.stream_rtsp)
 
     async def get_current_model(self):
         """Get current model type"""
@@ -185,6 +189,123 @@ class TrafficSignController:
             filename=filename,
             method='GET'  
         )
+
+    async def stream_rtsp(
+        self, 
+        rtsp_url: str = Query(..., description="RTSP stream URL"),
+        model_type: Optional[ModelType] = Query(ModelType.YOLO)
+    ):
+        try:
+            decoded_url = unquote(rtsp_url)
+            print(f"Decoded RTSP URL: {decoded_url}")  # Debug log
+
+            if not decoded_url.startswith('rtsp://'):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid RTSP URL format"
+                )
+
+            cap = cv2.VideoCapture(decoded_url)
+            if not cap.isOpened():
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Không thể kết nối đến RTSP stream: {decoded_url}"
+                )
+            cap.release()
+
+            return StreamingResponse(
+                self._process_rtsp_stream(decoded_url),
+                media_type="multipart/x-mixed-replace; boundary=frame",
+                headers={
+                    'Cache-Control': 'no-cache',
+                    'Connection': 'keep-alive',
+                    'Pragma': 'no-cache'
+                }
+            )
+        except Exception as e:
+            print(f"Stream error: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Lỗi xử lý RTSP stream: {str(e)}"
+            )
+
+    async def _process_rtsp_stream(self, rtsp_url: str):
+        """Process RTSP stream and yield frames with detections"""
+        cap = None
+        try:
+            cap = cv2.VideoCapture(rtsp_url)
+            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            cap.set(cv2.CAP_PROP_FPS, 15)
+
+            frame_count = 0
+            error_count = 0
+            max_errors = 5
+
+            while True:
+                try:
+                    ret, frame = cap.read()
+                    if not ret:
+                        error_count += 1
+                        print(f"Frame read error: {error_count}")
+                        if error_count > max_errors:
+                            break
+                        await asyncio.sleep(0.1)
+                        continue
+
+                    error_count = 0
+                    frame_count += 1
+
+                    if frame_count % 3 != 0:
+                        continue
+
+                    frame = cv2.resize(frame, (640, 480))
+
+                    results = self.model_service.process_stream(frame)
+                    
+                    if results is not None:
+                        boxes = results.boxes
+                        for box in boxes:
+                            x1, y1, x2, y2 = box.xyxy[0]
+                            conf = box.conf[0]
+                            cls_id = int(box.cls[0])
+                            
+                            cv2.rectangle(frame, 
+                                        (int(x1), int(y1)), 
+                                        (int(x2), int(y2)), 
+                                        (0, 255, 0), 2)
+                            
+                            label = f"{SIGN_NAMES[cls_id]}: {conf:.2f}"
+                            cv2.putText(frame, label, 
+                                      (int(x1), int(y1) - 10),
+                                      cv2.FONT_HERSHEY_SIMPLEX, 
+                                      0.5, (0, 255, 0), 2)
+
+                    cv2.putText(frame, 
+                              f"Frame: {frame_count}", 
+                              (10, 30), 
+                              cv2.FONT_HERSHEY_SIMPLEX, 
+                              1, (0, 255, 0), 2)
+
+                    _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+                    frame_bytes = buffer.tobytes()
+                    
+                    yield (b'--frame\r\n'
+                          b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                    
+                    await asyncio.sleep(0.03)
+
+                except Exception as frame_error:
+                    print(f"Frame processing error: {str(frame_error)}")
+                    error_count += 1
+                    if error_count > max_errors:
+                        break
+
+        except Exception as e:
+            print(f"Stream processing error: {str(e)}")
+            raise
+        finally:
+            if cap is not None:
+                cap.release()
 
 traffic_sign_controller = TrafficSignController()
 router = traffic_sign_controller.router

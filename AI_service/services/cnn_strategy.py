@@ -4,6 +4,7 @@ from .strategy import TrafficSignStrategy
 from .cnn_service import CNNService
 from models import BoundingBox, ClassificationResult
 from pathlib import Path
+import numpy as np
 
 class CNNStrategy(TrafficSignStrategy):
     def __init__(self):
@@ -17,3 +18,7 @@ class CNNStrategy(TrafficSignStrategy):
 
     def process_video(self, video_content: bytes, filename: str) -> Path:
         raise NotImplementedError("CNN model không hỗ trợ xử lý video")
+    
+    def process_stream(self, frame: np.ndarray):
+        raise NotImplementedError("Stream processing not implemented for CNN strategy")
+
