@@ -81,6 +81,7 @@ class ModelService:
         self.current_model_type = model_type
         return self._strategies[model_type].process_video(video_content, filename)
 
-    def process_stream(self, frame: np.ndarray, model_type: ModelType = ModelType.YOLO):
+    def process_rtsp_stream(self, rtsp_url: str, model_type: ModelType = ModelType.YOLO):
         self.current_model_type = model_type
-        return self._strategies[model_type].process_stream(frame)
+        return self._strategies[model_type].process_rtsp_stream(rtsp_url)
+    

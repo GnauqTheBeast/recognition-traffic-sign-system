@@ -6,11 +6,11 @@ from config.settings import SIGN_NAMES, YOLO_MODEL_PATH, MAX_IMAGE_SIZE
 from models import BoundingBox, ClassificationResult, Label, ClassificationResponse
 from services.label_service import LabelService
 import cv2
-from typing import Generator, Tuple
 from pathlib import Path
 import uuid
 from fastapi import HTTPException
 import shutil
+import asyncio
 
 class YOLOService:
     _instance = None
@@ -29,6 +29,10 @@ class YOLOService:
         self.valid_extensions = ('.mp4', '.avi', '.mov')
         self.output_dir = Path("output_videos")
         self.output_dir.mkdir(exist_ok=True)
+        self.frame_queue = asyncio.Queue(maxsize=10)
+        self.latest_processed_frame = None
+        self.is_processing = False
+        self.model_service = None
 
     def _load_model(self):
         """Load YOLO model using singleton pattern"""
@@ -226,22 +230,116 @@ class YOLOService:
                 shutil.rmtree(predict_dir)
             raise e
 
-    def process_stream(self, frame: np.ndarray):
+    def set_model_service(self, model_service):
+        self.model_service = model_service
+
+    async def process_frame_queue(self):
+        self.is_processing = True
+        while self.is_processing:
+            try:
+                if not self.frame_queue.empty():
+                    frame = await self.frame_queue.get()
+                    
+                    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+                    frame = cv2.resize(frame, (360, 480))
+                    
+                    # Resize frame for YOLO
+                    resized_frame, _ = resize_image_for_yolo(frame, MAX_IMAGE_SIZE)
+                    
+                    # Process frame with YOLO
+                    results = self._model.predict(
+                        source=resized_frame,
+                        conf=0.25,      # Confidence threshold
+                        iou=0.45,       # NMS IoU threshold
+                        verbose=False,
+                        device='cpu'
+                    )
+                    
+                    # Get first result
+                    result = next(iter(results), None)
+                    
+                    if result is not None:
+                        boxes = result.boxes
+                        for box in boxes:
+                            x1, y1, x2, y2 = box.xyxy[0]
+                            conf = box.conf[0]
+                            cls_id = int(box.cls[0])
+                            
+                            cv2.rectangle(frame, 
+                                        (int(x1), int(y1)), 
+                                        (int(x2), int(y2)), 
+                                        (0, 255, 0), 2)
+                            
+                            label = f"{SIGN_NAMES[cls_id]}: {conf:.2f}"
+                            cv2.putText(frame, label, 
+                                      (int(x1), int(y1) - 10),
+                                      cv2.FONT_HERSHEY_SIMPLEX, 
+                                      0.5, (0, 255, 0), 2)
+
+                    self.latest_processed_frame = frame
+                    
+                await asyncio.sleep(0.01)
+            except Exception as e:
+                print(f"Frame processing error: {str(e)}")
+                continue
+
+    async def process_rtsp_stream(self, rtsp_url: str):
+        cap = None
         try:
-            resized_frame, _ = resize_image_for_yolo(frame, MAX_IMAGE_SIZE)
+            cap = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
+            cap.set(cv2.CAP_PROP_FPS, 15)
+            cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'H264'))
             
-            results = self._model.predict(
-                source=resized_frame,
-                conf=0.25,      # Confidence threshold
-                iou=0.45,       # NMS IoU threshold
-                verbose=False,
-                device='cpu',
-                stream=True     # Enable streaming mode
-            )
+            process_task = asyncio.create_task(self.process_frame_queue())
             
-            # Lấy kết quả đầu tiên vì chỉ có một frame
-            return next(results) if results else None
+            error_count = 0
+            max_errors = 5
+            
+            while True:
+                try:
+                    ret, frame = cap.read()
+                    if not ret or frame is None:
+                        error_count += 1
+                        print(f"Frame read error: {error_count}")
+                        if error_count > max_errors:
+                            print("Too many errors, restarting capture...")
+                            if cap is not None:
+                                cap.release()
+                            cap = cv2.VideoCapture(rtsp_url)
+                            error_count = 0
+                        await asyncio.sleep(0.1)
+                        continue
+
+                    error_count = 0
+
+                    try:
+                        self.frame_queue.put_nowait(frame.copy())
+                    except asyncio.QueueFull:
+                        pass
+
+                    if self.latest_processed_frame is not None:
+                        encode_param = [
+                            cv2.IMWRITE_JPEG_QUALITY, 75,
+                            cv2.IMWRITE_JPEG_OPTIMIZE, 1
+                        ]
+                        _, buffer = cv2.imencode('.jpg', self.latest_processed_frame, encode_param)
+                        frame_bytes = buffer.tobytes()
+                        
+                        yield (b'--frame\r\n'
+                              b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                    
+                    await asyncio.sleep(0.03)
+
+                except Exception as frame_error:
+                    print(f"Frame processing error: {str(frame_error)}")
+                    error_count += 1
+                    if error_count > max_errors:
+                        break
 
         except Exception as e:
-            print(f"Lỗi khi xử lý stream frame với YOLO: {str(e)}")
-            return None
+            print(f"Stream processing error: {str(e)}")
+            raise
+        finally:
+            self.is_processing = False
+            if cap is not None:
+                cap.release()

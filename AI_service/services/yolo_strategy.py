@@ -4,6 +4,7 @@ from .strategy import TrafficSignStrategy
 from .yolo_service import YOLOService
 from pathlib import Path
 import numpy as np
+from typing import AsyncGenerator
 
 class YOLOStrategy(TrafficSignStrategy):
     def __init__(self):
@@ -18,5 +19,5 @@ class YOLOStrategy(TrafficSignStrategy):
     def process_video(self, video_content: bytes, filename: str) -> Path:
         return self.yolo_service.process_video(video_content, filename)
 
-    def process_stream(self, frame: np.ndarray):
-        return self.yolo_service.process_stream(frame)
+    def process_rtsp_stream(self, rtsp_url: str):
+        return self.yolo_service.process_rtsp_stream(rtsp_url)

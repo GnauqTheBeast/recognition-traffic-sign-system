@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 import numpy as np
+from typing import AsyncGenerator
 
 class TrafficSignStrategy(ABC):
     @abstractmethod
@@ -16,5 +17,5 @@ class TrafficSignStrategy(ABC):
         pass
 
     @abstractmethod
-    def process_stream(self, frame: np.ndarray):
+    async def process_rtsp_stream(self, rtsp_url: str):
         pass

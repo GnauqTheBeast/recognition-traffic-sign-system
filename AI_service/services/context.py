@@ -11,3 +11,10 @@ class TrafficSignModelContext:
 
     def classify_sign(self, image):
         return self.strategy.classify(image)
+    
+    def process_video(self, video_content: bytes, filename: str):
+        return self.strategy.process_video(video_content, filename)
+    
+    def process_rtsp_stream(self, rtsp_url: str):
+        return self.strategy.process_rtsp_stream(rtsp_url)
+    
